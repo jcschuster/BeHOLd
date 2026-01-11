@@ -3,8 +3,8 @@
 ```elixir
 Mix.install([
   {:kino, "~> 0.17.0"},
-  {:behold, path: __DIR__},
-  {:hol, "~>1.0.2"}
+  {:behold, "~> 1.0.0"},
+  {:hol, "~> 1.0.2"}
 ])
 ```
 

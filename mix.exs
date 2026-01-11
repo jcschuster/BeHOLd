@@ -7,7 +7,6 @@ defmodule BeHOLd.MixProject do
   def project do
     [
       app: :behold,
-      licences: [:mit],
       version: @version,
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
@@ -48,6 +47,8 @@ defmodule BeHOLd.MixProject do
         "demo.livemd"
       ],
       source_url: @source_url,
+      source_ref: "v#{@version}",
+      before_closing_head_tag: &before_closing_head_tag/1,
       before_closing_body_tag: &before_closing_body_tag/1
     ]
   end
@@ -63,13 +64,54 @@ defmodule BeHOLd.MixProject do
     ]
   end
 
-  # Enables LaTeX-like math rendering for markdown through KaTeX
+  defp before_closing_head_tag(:html) do
+    """
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    """
+  end
+
+  defp before_closing_head_tag(_), do: ""
+
   defp before_closing_body_tag(:html) do
     """
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css" integrity="sha384-t5CR+zwDAROtph0PXGte6ia8heboACF9R5l/DiY+WZ3P2lxNgvJkQk5n7GPvLMYw" crossorigin="anonymous">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.js" integrity="sha384-FaFLTlohFghEIZkw6VGwmf9ISTubWAVYW8tG8+w2LAIftJEULZABrF9PPFv+tVkH" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/contrib/auto-render.min.js" integrity="sha384-bHBqxz8fokvgoJ/sc17HODNxa42TlaEhB+w8ZJXTc2nZf1VgEaFZeZvT4Mznfz0v" crossorigin="anonymous"
-        onload="renderMathInElement(document.body);"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        var renderMath = function() {
+          if (window.renderMathInElement) {
+            renderMathInElement(document.body, {
+              delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false},
+                {left: "\\[", right: "\\]", display: true}
+              ]
+            });
+          }
+        };
+
+        var attempts = 0;
+        var initInterval = setInterval(function() {
+          if (window.renderMathInElement) {
+            renderMath();
+            clearInterval(initInterval);
+          } else if (attempts > 20) {
+            clearInterval(initInterval);
+          }
+          attempts++;
+        }, 100);
+
+        var observer = new MutationObserver(function(mutations) {
+          observer.disconnect();
+          renderMath();
+          observer.observe(document.body, { childList: true, subtree: true });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+      });
+    </script>
     """
   end
 

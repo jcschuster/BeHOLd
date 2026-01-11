@@ -1,0 +1,195 @@
+# Demo of the BeHOLd package
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.17.0"},
+  {:behold, path: __DIR__},
+  {:hol, "~>1.0.2"}
+])
+```
+
+## Setup
+
+Definitions and patterns of e.g., HOL connectives, are defined in the modules [`BeHOLd.ClassicalHOL.Definitions`](https://hexdocs.pm/behold/BeHOLd.ClassicalHOL.Definitions.html) and [`BeHOLd.ClassicalHOL.Patterns`](https://hexdocs.pm/behold/BeHOLd.ClassicalHOL.Patterns.html) as macros. To use them in Livebook, we hence need the `require` keyword to use the macros of the modules. When used in an Elixir project, it is sufficient to just `alias` or `import` them.
+
+```elixir
+alias BeHOLd.ClassicalHOL.{Definitions, Patterns}
+# Definitions and patterns are defined as macros.
+# For usage in a livebook, we hence need the require keyword.
+require BeHOLd.ClassicalHOL.{Definitions, Patterns}
+alias BeHOLd.Data.Context
+alias BeHOLd.{Parser, TPTP}
+```
+
+As **BeHOLd** is an extention of the library [HOL](https://hexdocs.pm/hol/readme.html), some functionality, e.g., the definition of additional types, require some of its modules. To use macros for pattern matching in Livebook, we again need to `require` the desired modules.
+
+```elixir
+require HOL.Data
+alias HOL.Data
+alias PrettyPrint
+```
+
+Per default, [HOL](https://hexdocs.pm/hol/readme.html) prints debug logs to the console when calling functions from its API, mainly on levels `:info` and `:notice`. This behavior can be disabled by setting the level to `:error` or disable logging entirely.
+
+```elixir
+Logger.put_application_level(:hol, :error)
+
+form =
+  Kino.Control.form(
+    [
+      name: Kino.Input.checkbox("Print debug logs")
+    ],
+    report_changes: true
+  )
+
+Kino.listen(form, fn event ->
+  if event.data.name == true do
+    Logger.put_application_level(:hol, :info)
+  else
+    Logger.put_application_level(:hol, :error)
+  end
+end)
+
+form
+```
+
+## Types
+
+Types are instances of the data structure [`HOL.Data.type()`](https://hexdocs.pm/hol/HOL.Data.html#t:type/0) and represents types as [records](https://hexdocs.pm/elixir/1.12/Record.html) which in turn internally use tuples. The type $\iota$ is hence representable (and can be pattern matched) as:
+
+```elixir
+Definitions.type_i()
+```
+
+```elixir
+match?(HOL.Data.type(goal: :i, args: []), Definitions.type_i())
+```
+
+More complex types are stored in their *curried*, *flattened* representation, where the field `:args` contains the list of argument types. E.g., the type $(\iota\to o)\to(\iota\to o)\to(\iota\to o)$ can be curried as $(\iota\to o)\to(\iota\to o)\to\iota\to o$, where $o$ is the *goal type* and $(\iota\to o)$, $(\iota\to o)$ and $\iota$ are the *argument types*.
+
+```elixir
+Definitions.type_io_io_io()
+```
+
+```elixir
+match?(
+  HOL.Data.type(goal: :o, args: [
+    Definitions.type_io(),
+    Definitions.type_io(),
+    Definitions.type_i()
+  ]),
+  Definitions.type_io_io_io()
+)
+```
+
+## Definitions and Patterns for HOL Symbols
+
+The module [`BeHOLd.ClassicalHOL.Definitions`](https://hexdocs.pm/behold/BeHOLd.ClassicalHOL.Definitions.html) also contains the usual connectives of classical HOL as signature symbols and defines other common connectives like XOR in terms of these symbols. The signature spans the following connectives:
+
+$$
+\top_o \quad \bot_o \quad \neg_{o\to o} \quad \lor_{o\to o\to o} \quad
+\land_{o\to o\to o} \quad \supset_{o\to o\to o} \quad \equiv_{o\to o\to o}
+\quad \Pi_{(\alpha\to o)\to o} \quad \Sigma_{(\alpha\to o)\to o} \quad
+=_{\alpha\to\alpha\to o}
+$$
+
+```elixir
+Definitions.signature_symbols()
+```
+
+In combination with the functions from [`HOL.Data`](https://hexdocs.pm/hol/HOL.Data.html) and [`HOL.Terms`](https://hexdocs.pm/hol/HOL.Terms.html), these can be used to construct logical terms. The [HOL](https://hexdocs.pm/hol/readme.html) library also includes a [`PrettyPrint` module](https://hexdocs.pm/hol/PrettyPrint.html) which can convert various data structures to a readable string representation, with or without type annotation.
+
+```elixir
+x = HOL.Terms.mk_free_var_term("X", Definitions.type_o())
+c = HOL.Terms.mk_const_term("c", Definitions.type_o())
+
+x_and_c = Definitions.and_term()
+  |> HOL.Terms.mk_appl_term(x)
+  |> HOL.Terms.mk_appl_term(c)
+```
+
+```elixir
+PrettyPrint.pp_term x_and_c
+```
+
+```elixir
+PrettyPrint.pp_term x_and_c, false
+```
+
+Note that the connectives are implemented both as [`HOL.Data.declaration()`](https://hexdocs.pm/hol/HOL.Data.html#t:declaration/0) and [`HOL.Data.hol_term()`](https://hexdocs.pm/hol/HOL.Data.html#t:hol_term/0) for different use cases, e.g., term construction or pattern matching.
+
+```elixir
+match?(Definitions.and_const(), HOL.Data.get_head(x_and_c))
+```
+
+$\lambda$-abstractions are also supported by specifying the variable (as [`HOL.Data.declaration()`](https://hexdocs.pm/hol/HOL.Data.html#t:declaration/0)) to capture.
+
+```elixir
+x_var = HOL.Data.mk_free_var("X", Definitions.type_o())
+
+HOL.Terms.mk_abstr_term(x_and_c, x_var)
+  |> PrettyPrint.pp_term(false)
+```
+
+The module [`BeHOLd.ClassicalHOL.Patterns`](https://hexdocs.pm/behold/BeHOLd.ClassicalHOL.Patterns.html) provides various convenient macros to pattern-match on HOL terms.
+
+```elixir
+match?(Patterns.conjunction(_, _), x_and_c)
+```
+
+For other common connectives, shorthand constructors are also available which define them in terms of the symbols from the signature.
+
+```elixir
+Definitions.xor_term()
+  |> PrettyPrint.pp_term
+```
+
+Quantors and equality symbols require types for term construction, not necessarily for pattern matching. Note that for quantors, a *set type* (i.e., a type with goal $o$) must be specified.
+
+```elixir
+a = HOL.Terms.mk_const_term("a", Definitions.type_i())
+b = HOL.Terms.mk_const_term("b", Definitions.type_i())
+
+a_eq_b =
+  Definitions.equals_term(Definitions.type_i())
+  |> HOL.Terms.mk_appl_term(a)
+  |> HOL.Terms.mk_appl_term(b)
+
+match?(Patterns.equality(^a, ^b), a_eq_b)
+```
+
+## TPTP Output
+
+Terms and types can also be represented as TPTP strings via the [`BeHOLd.TPTP`](https://hexdocs.pm/behold/BeHOLd.TPTP.html) module. The [`BeHOLd.TPTP.term_to_tptp/1`](https://hexdocs.pm/behold/BeHOLd.TPTP.html#term_to_tptp/1) function fully $\eta$-reduces terms and tries to reconstruct the syntactic sugar of TPTP, e.g., the XOR operator.
+
+```elixir
+p = HOL.Terms.mk_free_var_term("P", Definitions.type_o())
+q = HOL.Terms.mk_const_term("q", Definitions.type_o())
+
+Definitions.xor_term()
+  |> HOL.Terms.mk_appl_term(p)
+  |> HOL.Terms.mk_appl_term(q)
+  |> TPTP.term_to_tptp
+```
+
+## Parser
+
+The module [`BeHOLd.Parser`](https://hexdocs.pm/behold/BeHOLd.Parser.html) contains parsing utility for types and terms in [TPTP's TH0 syntax](https://doi.org/10.1007/s10817-017-9407-7). The parser implements full type inference, where terms of unknown will be mapped to type $o$. Optionally, a context can be specified for types which can't be inferred by the term structure. The parser implements the standard TH0 precedence rules.
+
+```elixir
+Parser.parse "~A & B"
+```
+
+The usage of quantors requires extra caution as their scope is influenced by parentheses.
+
+```elixir
+"![X : $o]: $false => (X => $true)"
+  |> Parser.parse
+  |> HOL.Data.get_head
+```
+
+```elixir
+"![X : $o]: (f @ X) | (g @ X)"
+  |> Parser.parse
+  |> HOL.Data.get_head
+```

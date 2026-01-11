@@ -47,7 +47,6 @@ defmodule BeHOLd.MixProject do
         "README.md",
         "demo.livemd"
       ],
-      source_ref: "v#{@version}",
       source_url: @source_url,
       before_closing_body_tag: &before_closing_body_tag/1
     ]

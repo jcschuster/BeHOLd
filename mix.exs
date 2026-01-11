@@ -59,7 +59,8 @@ defmodule BeHOLd.MixProject do
       maintainers: ["Johannes Schuster"],
       links: %{
         "GitHub" => @source_url
-      }
+      },
+      files: ~w(lib LICENSE mix.exs README.md)
     ]
   end
 

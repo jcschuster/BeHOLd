@@ -55,7 +55,7 @@ defmodule BeHOLd.MixProject do
 
   defp package do
     [
-      licences: ["Apache-2.0"],
+      licenses: ["Apache-2.0"],
       maintainers: ["Johannes Schuster"],
       links: %{
         "GitHub" => @source_url

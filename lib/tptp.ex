@@ -54,7 +54,7 @@ defmodule BeHOLd.TPTP do
   Tries to reconstruct the syntactic sugar (e.g., the XOR operator "<~>")
   present in the TH0 language and eta-reduces the terms.
 
-  As bound variables are named using deBrujn indices, they are prefixed with
+  As bound variables are named using De Bruijn indices, they are prefixed with
   "BV_". Skolem constants, which are internally named by prefixing them with
   "__sk_" followed by an identifying number, are prefixed by "skolem_",
   removing the double underscore before the name. To ensure TH0's variable

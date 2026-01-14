@@ -104,7 +104,6 @@ defmodule BeHOLd.Parser do
 
     final_ctx =
       if TI.unknown_type?(root_type) do
-        IO.puts("Type #{root_type} is unknown")
         Context.add_constraint(almost_final_ctx, root_type, type_o())
       else
         almost_final_ctx

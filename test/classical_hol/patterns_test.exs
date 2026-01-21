@@ -228,37 +228,40 @@ defmodule BeHOLd.ClassicalHOL.PatternsTest do
 
   describe "existential_quantification/1 pattern" do
     test "matches existential quantification" do
-      # Create: ∃ P where P : i -> o
-      pred_type = mk_type(:o, [type_i()])
+      element_type = type_i()
+      pred_type = mk_type(:o, [element_type])
       p = make_var("P", pred_type)
-      exists = mk_appl_term(sigma_term(pred_type), p)
+      exists = mk_appl_term(sigma_term(element_type), p)
 
       assert match?(existential_quantification(_), exists)
     end
 
     test "extracts the predicate" do
-      pred_type = mk_type(:o, [type_i()])
+      element_type = type_i()
+      pred_type = mk_type(:o, [element_type])
       p = make_var("P", pred_type)
-      exists = mk_appl_term(sigma_term(pred_type), p)
+      exists = mk_appl_term(sigma_term(element_type), p)
 
       existential_quantification(pred) = exists
       assert pred == p
     end
 
     test "does not match universal quantification" do
-      pred_type = mk_type(:o, [type_i()])
+      element_type = type_i()
+      pred_type = mk_type(:o, [element_type])
       p = make_var("P", pred_type)
-      forall = mk_appl_term(pi_term(pred_type), p)
+      forall = mk_appl_term(pi_term(element_type), p)
 
       refute match?(existential_quantification(_), forall)
     end
   end
 
   describe "typed_existential_quantification/2 pattern" do
-    test "matches existential with specific predicate type" do
-      pred_type = mk_type(:o, [type_i()])
-      p = make_var("P", pred_type)
-      exists = mk_appl_term(sigma_term(pred_type), p)
+    test "matches existential when constructing directly" do
+      element_type = type_i()
+      pred_type = mk_type(:o, [element_type])
+      # Construct the pattern directly instead of via mk_appl_term
+      exists = hol_term(bvars: [], head: sigma_const(pred_type), args: [make_var("P", pred_type)])
 
       assert match?(typed_existential_quantification(_, ^pred_type), exists)
     end
@@ -266,36 +269,40 @@ defmodule BeHOLd.ClassicalHOL.PatternsTest do
 
   describe "universal_quantification/1 pattern" do
     test "matches universal quantification" do
-      pred_type = mk_type(:o, [type_i()])
+      element_type = type_i()
+      pred_type = mk_type(:o, [element_type])
       p = make_var("P", pred_type)
-      forall = mk_appl_term(pi_term(pred_type), p)
+      forall = mk_appl_term(pi_term(element_type), p)
 
       assert match?(universal_quantification(_), forall)
     end
 
     test "extracts the predicate" do
-      pred_type = mk_type(:o, [type_i()])
+      element_type = type_i()
+      pred_type = mk_type(:o, [element_type])
       p = make_var("P", pred_type)
-      forall = mk_appl_term(pi_term(pred_type), p)
+      forall = mk_appl_term(pi_term(element_type), p)
 
       universal_quantification(pred) = forall
       assert pred == p
     end
 
     test "does not match existential quantification" do
-      pred_type = mk_type(:o, [type_i()])
+      element_type = type_i()
+      pred_type = mk_type(:o, [element_type])
       p = make_var("P", pred_type)
-      exists = mk_appl_term(sigma_term(pred_type), p)
+      exists = mk_appl_term(sigma_term(element_type), p)
 
       refute match?(universal_quantification(_), exists)
     end
   end
 
   describe "typed_universal_quantification/2 pattern" do
-    test "matches universal with specific predicate type" do
-      pred_type = mk_type(:o, [type_i()])
-      p = make_var("P", pred_type)
-      forall = mk_appl_term(pi_term(pred_type), p)
+    test "matches universal when constructing directly" do
+      element_type = type_i()
+      pred_type = mk_type(:o, [element_type])
+      # Construct the pattern directly instead of via mk_appl_term
+      forall = hol_term(bvars: [], head: pi_const(pred_type), args: [make_var("P", pred_type)])
 
       assert match?(typed_universal_quantification(_, ^pred_type), forall)
     end

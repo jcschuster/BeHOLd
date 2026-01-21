@@ -49,11 +49,11 @@
       #
       overrides: [
         %{
-          check: <Credo.Check.Design.TagTODO>,
+          check: Credo.Check.Design.TagTODO,
           params: [exit_status: 0]
         },
         %{
-          check: <Credo.Check.Design.TagFIXME>,
+          check: Credo.Check.Design.TagFIXME,
           params: [exit_status: 0]
         }
       ]

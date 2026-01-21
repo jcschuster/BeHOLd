@@ -4,9 +4,9 @@ defmodule BeHOLd.TPTPTest do
   """
   use ExUnit.Case, async: true
 
-  alias BeHOLd.TPTP
-  alias BeHOLd.Parser
   alias BeHOLd.Data.Context
+  alias BeHOLd.Parser
+  alias BeHOLd.TPTP
   import HOL.Data
   import HOL.Terms
   import BeHOLd.ClassicalHOL.Definitions

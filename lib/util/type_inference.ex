@@ -19,7 +19,7 @@ defmodule BeHOLd.Util.TypeInference do
   Creates a new and unique unknown type.
   """
   @spec mk_new_unknown_type() :: HOL.Data.type()
-  def mk_new_unknown_type() do
+  def mk_new_unknown_type do
     mk_type(:"__unknown_#{System.unique_integer([:positive, :monotonic])}")
   end
 
@@ -159,30 +159,34 @@ defmodule BeHOLd.Util.TypeInference do
         unify_concrete(t1, t2, subst)
 
       length(args1) < length(args2) ->
-        if unknown_type?(g1) do
-          {shared_args2, extra_args2} = Enum.split(args2, length(args1))
-
-          subst_after_args =
-            Enum.zip(args1, shared_args2)
-            |> Enum.reduce(subst, fn {a1, a2}, acc ->
-              unify(apply_subst(a1, acc), apply_subst(a2, acc), acc)
-            end)
-
-          tail_type = mk_type(g2, extra_args2)
-
-          unify(
-            apply_subst(g1, subst_after_args),
-            apply_subst(tail_type, subst_after_args),
-            subst_after_args
-          )
-        else
-          raise(
-            "Type Error: Cannot unify #{inspect(t1)} with #{inspect(t2)} under substitutions #{inspect(subst)}."
-          )
-        end
+        unify_shorter_to_longer(g1, args1, g2, args2, subst)
 
       length(args1) > length(args2) ->
         unify(t2, t1, subst)
+    end
+  end
+
+  defp unify_shorter_to_longer(g1, args1, g2, args2, subst) do
+    if unknown_type?(g1) do
+      {shared_args2, extra_args2} = Enum.split(args2, length(args1))
+
+      subst_after_args =
+        Enum.zip(args1, shared_args2)
+        |> Enum.reduce(subst, fn {a1, a2}, acc ->
+          unify(apply_subst(a1, acc), apply_subst(a2, acc), acc)
+        end)
+
+      tail_type = mk_type(g2, extra_args2)
+
+      unify(
+        apply_subst(g1, subst_after_args),
+        apply_subst(tail_type, subst_after_args),
+        subst_after_args
+      )
+    else
+      raise(
+        "Type Error: Cannot unify #{inspect(type(goal: g1, args: args1))} with #{inspect(type(goal: g2, args: args2))} under substitutions #{inspect(subst)}."
+      )
     end
   end
 

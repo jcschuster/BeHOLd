@@ -217,7 +217,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   @doc group: :Constants
   @doc """
   Constant representing the pi operator (universal quantification) over the
-  given domain type (must have goal type o).
+  given element type.
   """
   @spec pi_const(HOL.Data.type()) :: HOL.Data.declaration()
   defmacro pi_const(type) do
@@ -225,7 +225,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
       declaration(
         kind: :co,
         name: "Π",
-        type: type(goal: :o, args: [unquote(type)])
+        type: type(goal: :o, args: [type(goal: :o, args: [unquote(type)])])
       )
     end
   end
@@ -233,7 +233,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   @doc group: :Constants
   @doc """
   Constant representing the sigma operator (existential quantification) over
-  the given domain type (must have goal type o).
+  the given element type.
   """
   @spec sigma_const(HOL.Data.type()) :: HOL.Data.declaration()
   defmacro sigma_const(type) do
@@ -241,7 +241,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
       declaration(
         kind: :co,
         name: "Σ",
-        type: type(goal: :o, args: [unquote(type)])
+        type: type(goal: :o, args: [type(goal: :o, args: [unquote(type)])])
       )
     end
   end
@@ -429,7 +429,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   @doc group: :Terms
   @doc """
   A term representation of the pi operator (universal quantification) for the
-  given domain type (must have goal type o).
+  given element type.
   """
   @spec pi_term(HOL.Data.type()) :: HOL.Data.hol_term()
   defmacro pi_term(t) do
@@ -442,7 +442,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
           declaration(
             kind: :co,
             name: "Π",
-            type: type(goal: :o, args: [unquote(t)])
+            type: type(goal: :o, args: [type(goal: :o, args: [unquote(t)])])
           ),
         args: [
           hol_term(
@@ -454,7 +454,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
             max_num: 0
           )
         ],
-        type: type(goal: :o, args: [unquote(t)]),
+        type: type(goal: :o, args: [type(goal: :o, args: [unquote(t)])]),
         fvars: [],
         max_num: 1
       )
@@ -464,7 +464,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   @doc group: :Terms
   @doc """
   A term representation of the sigma operator (existential quantification) for
-  the given domain type (must have goal type o).
+  the given element type.
   """
   @spec sigma_term(HOL.Data.type()) :: HOL.Data.hol_term()
   defmacro sigma_term(t) do
@@ -477,7 +477,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
           declaration(
             kind: :co,
             name: "Σ",
-            type: type(goal: :o, args: [unquote(t)])
+            type: type(goal: :o, args: [type(goal: :o, args: [unquote(t)])])
           ),
         args: [
           hol_term(
@@ -489,7 +489,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
             max_num: 0
           )
         ],
-        type: type(goal: :o, args: [unquote(t)]),
+        type: type(goal: :o, args: [type(goal: :o, args: [unquote(t)])]),
         fvars: [],
         max_num: 1
       )

@@ -423,39 +423,25 @@ defmodule BeHOLd.TPTP do
         process_tokens(remaining_tokens, %{problem | types: new_types})
 
       _ ->
-        try do
-          ctx = build_context(problem)
-          term = Parser.parse_tokens(formula_tokens, ctx)
+        ctx = build_context(problem)
+        term = Parser.parse_tokens(formula_tokens, ctx)
 
-          new_problem =
-            cond do
-              role == :definition ->
-                %{problem | definitions: Map.put(problem.definitions, name, term)}
+        new_problem =
+          cond do
+            role == :definition ->
+              %{problem | definitions: Map.put(problem.definitions, name, term)}
 
-              role in [:axiom, :hypothesis, :lemma, :assumption] ->
-                %{problem | axioms: problem.axioms ++ [{name, term}]}
+            role in [:axiom, :hypothesis, :lemma, :assumption] ->
+              %{problem | axioms: problem.axioms ++ [{name, term}]}
 
-              role == :conjecture ->
-                %{problem | conjecture: {name, term}}
+            role == :conjecture ->
+              %{problem | conjecture: {name, term}}
 
-              true ->
-                problem
-            end
+            true ->
+              problem
+          end
 
-          process_tokens(remaining_tokens, new_problem)
-        rescue
-          e ->
-            # === DEBUGGING TRAP ===
-            IO.puts("\n========================================")
-            IO.puts("CRASH DETECTED PARSING: #{name}")
-            IO.puts("TYPES: #{inspect(problem.types, limit: :infinity)}")
-            IO.puts("ROLE: #{role}")
-            IO.puts("TOKENS: #{inspect(formula_tokens, limit: :infinity)}")
-            IO.puts("========================================\n")
-
-            # Re-raise the error so you still get the stack trace
-            reraise e, __STACKTRACE__
-        end
+        process_tokens(remaining_tokens, new_problem)
     end
   end
 

@@ -226,8 +226,7 @@ defmodule BeHOLd.TPTPTest do
   describe "term_to_tptp/1 - quantifiers" do
     test "converts universal quantification term" do
       # Use direct term construction instead of parsing
-      pred_type = mk_type(:o, [type_o()])
-      pi = pi_term(pred_type)
+      pi = pi_term(type_o())
 
       result = TPTP.term_to_tptp(pi)
 
@@ -235,8 +234,7 @@ defmodule BeHOLd.TPTPTest do
     end
 
     test "converts existential quantification term" do
-      pred_type = mk_type(:o, [type_o()])
-      sigma = sigma_term(pred_type)
+      sigma = sigma_term(type_o())
 
       result = TPTP.term_to_tptp(sigma)
 
@@ -244,8 +242,7 @@ defmodule BeHOLd.TPTPTest do
     end
 
     test "converts pi constant to !!" do
-      pred_type = mk_type(:o, [mk_type(:o, [type_o()])])
-      pi = pi_term(pred_type)
+      pi = pi_term(type_o())
 
       result = TPTP.term_to_tptp(pi)
 
@@ -254,8 +251,7 @@ defmodule BeHOLd.TPTPTest do
     end
 
     test "converts sigma constant to ??" do
-      pred_type = mk_type(:o, [mk_type(:o, [type_o()])])
-      sigma = sigma_term(pred_type)
+      sigma = sigma_term(type_o())
 
       result = TPTP.term_to_tptp(sigma)
 

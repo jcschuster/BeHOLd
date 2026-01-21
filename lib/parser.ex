@@ -421,7 +421,8 @@ defmodule BeHOLd.Parser do
 
   # --- Quantifiers and Abstractions ---
 
-  # Handles ! [X:Type, Y:Type]: Body
+  # Handles ! [X:Type, Y:Type]: Body and ? [X:Type, Y:Type]: Body
+  # Creates a quantified term where the element type(s) are explicitly provided
   defp parse_quantifier(type_key, [{:lbracket, _} | rest], ctx) do
     {vars, [{:rbracket, _}, {:colon, _} | body_tokens]} = parse_typed_vars_with_inference(rest)
 
@@ -446,29 +447,29 @@ defmodule BeHOLd.Parser do
         abs_type = mk_type(:o, [var_type])
         abs_node = {:pre_abs, name, var_type, acc_term, abs_type}
 
-        quant_type = mk_type(:o, [abs_type])
-
         quant_name =
           case type_key do
             :pi -> "Π"
             :sigma -> "Σ"
           end
 
-        quant_const = {:pre_const, quant_name, quant_type}
+        quant_const = {:pre_const, quant_name, mk_type(:o, [abs_type])}
         {:pre_app, quant_const, abs_node, type_o()}
       end)
 
     {term, rest_tokens, outer_ctx}
   end
 
+  # Handles !!(^[X: Type]: Body) and ??(^[X: Type]: Body)
+  # Creates a second-order quantified term with explicit lambda abstraction
   defp parse_quantifier(type_key, [{:lparen, _}, {:lambda, _} | rest], ctx) do
     {abs_term, rest_after_lambda, lambda_ctx} = parse_lambda(rest, ctx)
 
     case rest_after_lambda do
       [{:rparen, _} | final_tokens] ->
         abs_type = get_pre_type(abs_term)
-        domain_type = TI.mk_new_unknown_type()
-        expected_pred_type = mk_type(:o, [domain_type])
+        element_type = TI.mk_new_unknown_type()
+        expected_pred_type = mk_type(:o, [element_type])
 
         final_ctx = Context.add_constraint(lambda_ctx, abs_type, expected_pred_type)
 
@@ -491,6 +492,8 @@ defmodule BeHOLd.Parser do
     end
   end
 
+  # Handles !!Predicate and ??Predicate
+  # Creates a quantified term where the predicate is inferred to have type (α → o)
   defp parse_quantifier(type_key, rest, ctx) do
     {term, rest2, ctx2} = parse_unitary(rest, ctx)
 

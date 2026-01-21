@@ -13,8 +13,8 @@ defmodule BeHOLd.TPTP do
   import HOL.Data
   import BeHOLd.ClassicalHOL.{Definitions, Patterns}
   alias BeHOLd.Data.{Context, Problem}
-  alias BeHOLd.Util.Lexer
   alias BeHOLd.Parser
+  alias BeHOLd.Util.Lexer
 
   #############################################################################
   # TERM TO TPTP REPRESENTATION
@@ -217,40 +217,52 @@ defmodule BeHOLd.TPTP do
         term_to_tptp(head)
 
       [arg] ->
-        case arg do
-          hol_term(bvars: [], head: declaration(name: n), args: [])
-          when n in signature_symbols() ->
-            "( (#{term_to_tptp(head)}) @ #{term_to_tptp(arg)} )"
-
-          _ ->
-            if arg in [implied_by_term(), xor_term(), nand_term(), nor_term()] or
-                 match?(not_equals_term(_), arg) do
-              "( (#{term_to_tptp(head)}) @ #{term_to_tptp(arg)} )"
-            else
-              "( #{term_to_tptp(head)} @ #{term_to_tptp(arg)} )"
-            end
-        end
+        format_single_arg_application(head, arg)
 
       _ ->
-        [hol_term(type: t) = last_arg | rest] = Enum.reverse(args)
-
-        head_fvars =
-          case head do
-            declaration(kind: :fv) -> [head]
-            _ -> []
-          end
-
-        reduced_fvars =
-          (head_fvars ++ Enum.reduce(rest, [], &(get_fvars(&1) ++ &2))) |> Enum.uniq()
-
-        "( #{term_to_tptp(hol_term(term, head: head, args: rest, type: mk_type(type, [t]), fvars: reduced_fvars))} @ " <>
-          "#{term_to_tptp(last_arg)} )"
+        format_multi_arg_application(term, head, args, type)
     end
   end
 
   defp do_term_to_tptp(hol_term(bvars: bvars, max_num: max_num) = term) do
     "^ [#{Enum.map_join(bvars, ", ", &"#{term_to_tptp(&1)} : #{type_to_tptp(get_type(&1))}")}]: " <>
       "( #{term_to_tptp(hol_term(term, bvars: [], max_num: max_num - length(bvars)))} )"
+  end
+
+  defp format_single_arg_application(head, arg) do
+    case arg do
+      hol_term(bvars: [], head: declaration(name: n), args: [])
+      when n in signature_symbols() ->
+        "( (#{term_to_tptp(head)}) @ #{term_to_tptp(arg)} )"
+
+      _ ->
+        if needs_extra_parens_for_arg(arg) do
+          "( (#{term_to_tptp(head)}) @ #{term_to_tptp(arg)} )"
+        else
+          "( #{term_to_tptp(head)} @ #{term_to_tptp(arg)} )"
+        end
+    end
+  end
+
+  defp needs_extra_parens_for_arg(arg) do
+    arg in [implied_by_term(), xor_term(), nand_term(), nor_term()] or
+      match?(not_equals_term(_), arg)
+  end
+
+  defp format_multi_arg_application(term, head, args, type) do
+    [hol_term(type: t) = last_arg | rest] = Enum.reverse(args)
+
+    head_fvars =
+      case head do
+        declaration(kind: :fv) -> [head]
+        _ -> []
+      end
+
+    reduced_fvars =
+      (head_fvars ++ Enum.reduce(rest, [], &(get_fvars(&1) ++ &2))) |> Enum.uniq()
+
+    "( #{term_to_tptp(hol_term(term, head: head, args: rest, type: mk_type(type, [t]), fvars: reduced_fvars))} @ " <>
+      "#{term_to_tptp(last_arg)} )"
   end
 
   @spec collect_quantified_vars(String.t(), HOL.Data.hol_term(), [String.t()]) ::

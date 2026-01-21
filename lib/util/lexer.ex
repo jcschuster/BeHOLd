@@ -25,18 +25,26 @@ defmodule BeHOLd.Util.Lexer do
 
   comment = string("%") |> concat(ascii_string([not: ?\n], min: 0)) |> ignore()
 
+  @keywords %{
+    "include" => :include,
+    "thf" => :thf
+  }
+
+  @roles %{
+    "type" => :type,
+    "axiom" => :axiom,
+    "definition" => :definition,
+    "conjecture" => :conjecture,
+    "lemma" => :lemma,
+    "hypothesis" => :hypothesis
+  }
+
   @doc false
   def categorize_atom(name) do
-    case name do
-      "include" -> {:keyword, :include}
-      "thf" -> {:keyword, :thf}
-      "type" -> {:role, :type}
-      "axiom" -> {:role, :axiom}
-      "definition" -> {:role, :definition}
-      "conjecture" -> {:role, :conjecture}
-      "lemma" -> {:role, :lemma}
-      "hypothesis" -> {:role, :hypothesis}
-      _ -> {:atom, name}
+    cond do
+      Map.has_key?(@keywords, name) -> {:keyword, @keywords[name]}
+      Map.has_key?(@roles, name) -> {:role, @roles[name]}
+      true -> {:atom, name}
     end
   end
 

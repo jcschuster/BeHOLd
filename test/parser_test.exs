@@ -4,8 +4,9 @@ defmodule BeHOLd.ParserTest do
   """
   use ExUnit.Case, async: true
 
-  alias BeHOLd.Parser
   alias BeHOLd.Data.Context
+  alias BeHOLd.Parser
+  alias BeHOLd.Util.Lexer
   import HOL.Data
   import BeHOLd.ClassicalHOL.Definitions
   import BeHOLd.ClassicalHOL.Patterns
@@ -476,7 +477,7 @@ defmodule BeHOLd.ParserTest do
 
   describe "parse_type_tokens/1" do
     test "parses and returns remaining tokens" do
-      {:ok, tokens, _, _, _, _} = BeHOLd.Util.Lexer.tokenize("$i > $o, rest")
+      {:ok, tokens, _, _, _, _} = Lexer.tokenize("$i > $o, rest")
 
       {type, rest} = Parser.parse_type_tokens(tokens)
 

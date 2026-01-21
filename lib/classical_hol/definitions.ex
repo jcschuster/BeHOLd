@@ -104,7 +104,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   Type for symbols of type ι⇾ι⇾o, e.g. relations on individuals.
   """
   @spec type_iio() :: HOL.Data.type()
-  defmacro type_iio(), do: Macro.escape(@type_iio)
+  defmacro type_iio, do: Macro.escape(@type_iio)
 
   @doc group: :Types
   @doc """
@@ -119,7 +119,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   Type for symbols of type (ι⇾o)⇾ι, e.g. the choice operator (Hilbert's ε).
   """
   @spec type_io_i() :: HOL.Data.type()
-  defmacro type_io_i(), do: Macro.escape(@type_io_i)
+  defmacro type_io_i, do: Macro.escape(@type_io_i)
 
   @doc group: :Types
   @doc """
@@ -127,7 +127,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   individuals, e.g. the subset relation (⊆).
   """
   @spec type_io_io_o() :: HOL.Data.type()
-  defmacro type_io_io_o(), do: Macro.escape(@type_io_io_o)
+  defmacro type_io_io_o, do: Macro.escape(@type_io_io_o)
 
   @doc group: :Types
   @doc """
@@ -135,7 +135,7 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   or intersection (∩).
   """
   @spec type_io_io_io() :: HOL.Data.type()
-  defmacro type_io_io_io(), do: Macro.escape(@type_io_io_io)
+  defmacro type_io_io_io, do: Macro.escape(@type_io_io_io)
 
   #############################################################################
   # CONSTANTS
@@ -427,34 +427,37 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   end
 
   @doc group: :Terms
+  @doc group: :Terms
   @doc """
   A term representation of the pi operator (universal quantification) for the
-  given element type.
+  given element type. Returns a lambda abstraction that takes a predicate.
   """
   @spec pi_term(HOL.Data.type()) :: HOL.Data.hol_term()
-  defmacro pi_term(t) do
+  defmacro pi_term(element_type) do
     quote do
+      pred_type = type(goal: :o, args: [unquote(element_type)])
+
       hol_term(
         bvars: [
-          declaration(kind: :bv, name: 1, type: unquote(t))
+          declaration(kind: :bv, name: 1, type: pred_type)
         ],
         head:
           declaration(
             kind: :co,
             name: "Π",
-            type: type(goal: :o, args: [type(goal: :o, args: [unquote(t)])])
+            type: type(goal: :o, args: [pred_type])
           ),
         args: [
           hol_term(
             bvars: [],
-            head: declaration(kind: :bv, name: 1, type: unquote(t)),
+            head: declaration(kind: :bv, name: 1, type: pred_type),
             args: [],
-            type: unquote(t),
+            type: pred_type,
             fvars: [],
             max_num: 0
           )
         ],
-        type: type(goal: :o, args: [type(goal: :o, args: [unquote(t)])]),
+        type: type(goal: :o, args: [pred_type]),
         fvars: [],
         max_num: 1
       )
@@ -464,32 +467,34 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   @doc group: :Terms
   @doc """
   A term representation of the sigma operator (existential quantification) for
-  the given element type.
+  the given element type. Returns a lambda abstraction that takes a predicate.
   """
   @spec sigma_term(HOL.Data.type()) :: HOL.Data.hol_term()
-  defmacro sigma_term(t) do
+  defmacro sigma_term(element_type) do
     quote do
+      pred_type = type(goal: :o, args: [unquote(element_type)])
+
       hol_term(
         bvars: [
-          declaration(kind: :bv, name: 1, type: unquote(t))
+          declaration(kind: :bv, name: 1, type: pred_type)
         ],
         head:
           declaration(
             kind: :co,
             name: "Σ",
-            type: type(goal: :o, args: [type(goal: :o, args: [unquote(t)])])
+            type: type(goal: :o, args: [pred_type])
           ),
         args: [
           hol_term(
             bvars: [],
-            head: declaration(kind: :bv, name: 1, type: unquote(t)),
+            head: declaration(kind: :bv, name: 1, type: pred_type),
             args: [],
-            type: unquote(t),
+            type: pred_type,
             fvars: [],
             max_num: 0
           )
         ],
-        type: type(goal: :o, args: [type(goal: :o, args: [unquote(t)])]),
+        type: type(goal: :o, args: [pred_type]),
         fvars: [],
         max_num: 1
       )

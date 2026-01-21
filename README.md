@@ -43,7 +43,10 @@ $$
 =_{\alpha\to\alpha\to o} \quad \Pi_{(\alpha\to o)\to o} \quad \Sigma_{(\alpha\to o)\to o}
 $$
 
-Note that $=_{\alpha\to\alpha\to o}$ (short $=^\alpha$), $\Pi_{(\alpha\to o)\to o}$ (short $\Pi^\alpha$) and $\Sigma_{(\alpha\to o)\to o}$ (short $\Sigma^\alpha$) represent _families_ of constants, i.e., there is one of each symbol for every type.
+Note that $=_{\alpha\to\alpha\to o}$ (short $=^\alpha$),
+$\Pi_{(\alpha\to o)\to o}$ (short $\Pi^\alpha$) and
+$\Sigma_{(\alpha\to o)\to o}$ (short $\Sigma^\alpha$) represent _families_ of
+constants, i.e., there is one of each symbol for every type.
 
 ## Term Representation
 
@@ -54,15 +57,16 @@ short summary, terms are ensured to always be in $\beta\eta$-normal form, i.e.
 maximally $\eta$-expanded and $\beta$-reduced until no $\beta$-reductions are
 possible. Additionally, bound variables in $\lambda$-abstractions are named via
 [de Bruijn indices](https://en.wikipedia.org/wiki/De_Bruijn_index), i.e.,
-$(\lambda X. \lambda Y. X~Y)$ is represented as $(\lambda. \lambda. 2~1)$.
+$(\lambda X. \lambda Y. X\text{ }Y)$ is represented as $(\lambda. \lambda. 2\text{ }1)$.
 
 Internally, terms are represented by the data structure
 [`HOL.Data.hol_term()`](https://hexdocs.pm/hol/HOL.Data.html#t:hol_term/0) as
 records with accessor fields for the term's head, arguments, bound variables,
 free variables, type and highest de Bruijn index. The term head and arguments
-fields correspond to a _flattened_ representation of the term, e.g. $((f~a)~b)$
-is repesented as $(f~a~b)$ where $f$ is the head and $a$ and $b$ are the
-arguments. This means, that a term's head is always given as a
+fields correspond to a _flattened_ representation of the term, e.g.
+$((f\text{ }a)\text{ }b)$ is repesented as $(f\text{ }a\text{ }b)$ where $f$ is
+the head and $a$ and $b$ are the arguments. This means, that a term's head is
+always given as a
 [`HOL.Data.declaration()`](https://hexdocs.pm/hol/HOL.Data.html#t:declaration/0)
 of a constant, bound or free variable.
 

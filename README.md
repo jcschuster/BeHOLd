@@ -92,7 +92,7 @@ in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:behold, "~> 1.0.1"}
+    {:behold, "~> 1.1.0"}
   ]
 end
 ```

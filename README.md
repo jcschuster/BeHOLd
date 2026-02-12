@@ -26,10 +26,17 @@ possible to introduce additional user-defined base types:
 
 $$\alpha, \beta \coloneqq \iota \mid o \mid \alpha\to\beta$$
 
-$o$ is the type for booleans, containing the values of $\top_o$ and $\bot_o$
-while $\iota$ denotes the (nonempty) set of individuals. Note that type
+$o$ is the type for booleans, containing the values $\mathtt{T}$ and
+$\mathtt{F}$ while $\iota$ denotes the (nonempty) set of individuals.
+Additional, user-defined types are treated like $\iota$. Note that type
 construction is right-associative, i.e.,
 $\alpha\to(\beta\to\gamma) = \alpha\to\beta\to\gamma$.
+
+The parsing algorithm might not be able to infer some types. Those are assigned
+unique _type variables_ (prefixed with `"__uk_"`) denoting unknown types.
+However, if the goal type of an entire term (only on the outermost layer) is
+unknown, it is unified with type $o$ as terms are assumed to be of boolean type
+unless specified otherwise.
 
 In addition to the simply-typed lambda calculus, classical HOL contains the
 following constants with the usual interpretation:
@@ -57,7 +64,11 @@ short summary, terms are ensured to always be in $\beta\eta$-normal form, i.e.
 maximally $\eta$-expanded and $\beta$-reduced until no $\beta$-reductions are
 possible. Additionally, bound variables in $\lambda$-abstractions are named via
 [de Bruijn indices](https://en.wikipedia.org/wiki/De_Bruijn_index), i.e.,
-$(\lambda X. \lambda Y. X\text{ }Y)$ is represented as $(\lambda. \lambda. 2\text{ }1)$.
+$(\lambda X. \lambda Y. X\text{ }Y)$ is represented as
+$(\lambda. \lambda. 2\text{ }1)$. This process names bound variables with
+respect to their _scope_. I.e., in abstractions occuring in the body of another
+abstraction, the index of the outer bound variable is _raised_ to match the
+scope of the inner abstraction.
 
 Internally, terms are represented by the data structure
 [`HOL.Data.hol_term()`](https://hexdocs.pm/hol/HOL.Data.html#t:hol_term/0) as
@@ -78,7 +89,7 @@ implemented with two different entry points. All connectives and features in
 TH0 are supported.
 
 The module [`BeHOLd.Parser`](https://hexdocs.pm/behold/BeHOLd.Parser.html)
-handles simple formula strings like `"?[X : $o]: X => $true`.
+handles simple formula strings like `"?[X : $o]: X => $true"`.
 
 The module [`BeHOLd.TPTP`](https://hexdocs.pm/behold/BeHOLd.TPTP.html) handles
 file parsing for TPTP problem files and contains functionality to convert the

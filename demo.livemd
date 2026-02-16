@@ -3,25 +3,26 @@
 ```elixir
 Mix.install([
   {:kino, "~> 0.17.0"},
-  {:behold, "~> 1.0.0"},
+  {:behold, "~> 1.1.2"},
   {:hol, "~> 1.0.2"}
 ])
 ```
 
 ## Setup
 
-Definitions and patterns of e.g., HOL connectives, are defined in the modules [`BeHOLd.ClassicalHOL.Definitions`](https://hexdocs.pm/behold/BeHOLd.ClassicalHOL.Definitions.html) and [`BeHOLd.ClassicalHOL.Patterns`](https://hexdocs.pm/behold/BeHOLd.ClassicalHOL.Patterns.html) as macros. To use them in Livebook, we hence need the `require` keyword to use the macros of the modules. When used in an Elixir project, it is sufficient to just `alias` or `import` them.
+Definitions and patterns of e.g., HOL connectives, are defined in the modules [`BeHOLd.ClassicalHOL.Definitions`](https://hexdocs.pm/behold/BeHOLd.ClassicalHOL.Definitions.html) and [`BeHOLd.ClassicalHOL.Patterns`](https://hexdocs.pm/behold/BeHOLd.ClassicalHOL.Patterns.html) as macros. To use them in Livebook, we hence need the `use` keyword which handles the imports and ensures the macros are usable. Aliasing can be handled when passing the `as` option.
 
 ```elixir
-alias BeHOLd.ClassicalHOL.{Definitions, Patterns}
 # Definitions and patterns are defined as macros.
-# For usage in a livebook, we hence need the require keyword.
-require BeHOLd.ClassicalHOL.{Definitions, Patterns}
+# For usage in a livebook, we hence need the use keyword.
+use BeHOLd.ClassicalHOL.Definitions, as: Definitions
+use BeHOLd.ClassicalHOL.Patterns, as: Patterns
+alias BeHOLd.ClassicalHOL.Equality
 alias BeHOLd.Data.Context
 alias BeHOLd.{Parser, TPTP}
 ```
 
-As **BeHOLd** is an extention of the library [HOL](https://hexdocs.pm/hol/readme.html), some functionality, e.g., the definition of additional types, require some of its modules. To use macros for pattern matching in Livebook, we again need to `require` the desired modules.
+As **BeHOLd** is an extention of the library [HOL](https://hexdocs.pm/hol/readme.html), some functionality, e.g., the definition of additional types, require some of its modules. To use macros for pattern matching in Livebook, we need to `require` the desired module. The records for types and terms are internally defined as macros for tuples.
 
 ```elixir
 require HOL.Data
@@ -97,7 +98,7 @@ $$
 Definitions.signature_symbols()
 ```
 
-In combination with the functions from [`HOL.Data`](https://hexdocs.pm/hol/HOL.Data.html) and [`HOL.Terms`](https://hexdocs.pm/hol/HOL.Terms.html), these can be used to construct logical terms. The [HOL](https://hexdocs.pm/hol/readme.html) library also includes a [`PrettyPrint` module](https://hexdocs.pm/hol/PrettyPrint.html) which can convert various data structures to a readable string representation, with or without type annotation.
+In combination with the functions from [`HOL.Data`](https://hexdocs.pm/hol/HOL.Data.html) and [`HOL.Terms`](https://hexdocs.pm/hol/HOL.Terms.html), these can be used to construct logical terms. The [HOL](https://hexdocs.pm/hol/readme.html) library also includes a [`PrettyPrint`](https://hexdocs.pm/hol/PrettyPrint.html) module which can convert various data structures to a readable string representation, with or without type annotation.
 
 ```elixir
 x = HOL.Terms.mk_free_var_term("X", Definitions.type_o())
@@ -192,4 +193,76 @@ The usage of quantors requires extra caution as their scope is influenced by par
 "![X : $o]: (f @ X) | (g @ X)"
   |> Parser.parse
   |> HOL.Data.get_head
+```
+
+A type environment (context) can be specified to clear up non-inferrable types. The type inference engine handles the rest.
+
+```elixir
+"X = a" |> Parser.parse() |> PrettyPrint.pp_term(false)
+```
+
+```elixir
+ctx = Context.new()
+  |> Context.put_var("X", Definitions.type_i())
+
+"X = a" |> Parser.parse(ctx) |> PrettyPrint.pp_term(false)
+```
+
+## Equality
+
+From version 1.1.2, `BeHOLd` supports constructors for different notions of equality. These include Leibniz equality $\mathcal{L}^\tau$, Andrews equality $\mathcal{A}^\tau$ and extensional equality $\mathcal{E}^{\alpha\to\beta}$.
+
+$\mathcal{L}^\tau$ states that two terms of type $\tau$ are equal because they share the same properties. It can be formulated using different connectives such as implication, equivalence or the converse of the implication. Default is equivalence.
+
+$\mathcal{A}^\tau$ formulates equality stating that all reflexive binary relations on type $\tau$ hold for the two terms.
+
+$\mathcal{E}^{\alpha\to\beta}$ is only defined on function types and states that two terms are equal because they share the same extensions.
+
+```elixir
+a = HOL.Terms.mk_const_term("a", Definitions.type_ii())
+b = HOL.Terms.mk_const_term("b", Definitions.type_ii())
+
+ctx = Context.new()
+  |> Context.put_const("a", Definitions.type_ii())
+  |> Context.put_const("b", Definitions.type_ii())
+```
+
+```elixir
+(
+  Equality.leibniz_equality(Definitions.type_ii())
+  |> HOL.Terms.mk_appl_term(a)
+  |> HOL.Terms.mk_appl_term(b)
+) == Parser.parse("![P:($i>$i)>$o]: P @ a <=> P @ b")
+```
+
+```elixir
+(
+  Equality.leibniz_equality(Definitions.type_ii(), Definitions.implies_term())
+  |> HOL.Terms.mk_appl_term(a)
+  |> HOL.Terms.mk_appl_term(b)
+) == Parser.parse("![P:($i>$i)>$o]: P @ a => P @ b")
+```
+
+```elixir
+(
+  Equality.leibniz_equality(Definitions.type_ii(), Definitions.implied_by_term())
+  |> HOL.Terms.mk_appl_term(a)
+  |> HOL.Terms.mk_appl_term(b)
+) == Parser.parse("![P:($i>$i)>$o]: P @ a <= P @ b")
+```
+
+```elixir
+(
+  Equality.andrews_equality(Definitions.type_ii())
+  |> HOL.Terms.mk_appl_term(a)
+  |> HOL.Terms.mk_appl_term(b)
+) == Parser.parse("![Q:($i>$i)>($i>$i)>$o] ((![X:$i>$i]: Q @ X @ X) => Q @ a @ b)")
+```
+
+```elixir
+(
+  Equality.extensional_equality(Definitions.type_ii())
+  |> HOL.Terms.mk_appl_term(a)
+  |> HOL.Terms.mk_appl_term(b)
+) == Parser.parse("![X:$i]: a @ X = b @ X", ctx)
 ```

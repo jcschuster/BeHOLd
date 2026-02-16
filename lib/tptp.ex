@@ -11,7 +11,7 @@ defmodule BeHOLd.TPTP do
   """
 
   import HOL.Data
-  import BeHOLd.ClassicalHOL.{Definitions, Patterns}
+  use BeHOLd.ClassicalHOL.{Definitions, Patterns}
   alias BeHOLd.Data.{Context, Problem}
   alias BeHOLd.Parser
   alias BeHOLd.Util.Lexer

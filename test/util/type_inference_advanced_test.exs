@@ -8,14 +8,11 @@ defmodule BeHOLd.Util.TypeInference.AdvancedTest do
   describe "apply_subst - complex substitution" do
     test "apply_subst with nested unknown types" do
       u1 = mk_new_unknown_type()
-      u2 = mk_new_unknown_type()
 
-      # Just verify the function can handle complex types
       subst = %{}
 
       result = apply_subst(u1, subst)
 
-      # Should resolve to a value (may be atom, struct, or other)
       refute is_nil(result)
     end
 
@@ -98,9 +95,6 @@ defmodule BeHOLd.Util.TypeInference.AdvancedTest do
       u1 = mk_new_unknown_type()
       u2 = mk_new_unknown_type()
       u3 = mk_new_unknown_type()
-      type(goal: g1) = u1
-      type(goal: g2) = u2
-      type(goal: g3) = u3
 
       constraints = [
         {u1, u2},

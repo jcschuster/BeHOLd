@@ -10,6 +10,7 @@ defmodule BeHOLd.TPTPTest do
   import HOL.Data
   import HOL.Terms
   import BeHOLd.ClassicalHOL.Definitions
+  import BeHOLd.ClassicalHOL.Patterns
 
   # Helper to create test terms
   defp make_var(name, type) do
@@ -175,6 +176,36 @@ defmodule BeHOLd.TPTPTest do
 
       assert result == "( A = B )"
     end
+
+    test "converts equality with constants" do
+      a = mk_term(mk_const("a", type_i()))
+      b = mk_term(mk_const("b", type_i()))
+      eq = mk_appl_term(mk_appl_term(equals_term(type_i()), a), b)
+      result = TPTP.term_to_tptp(eq)
+
+      assert result == "( a = b )"
+    end
+
+    test "converts equality with function applications" do
+      f = mk_const("f", mk_type(:i, [type_i()]))
+      x = make_var("X", type_i())
+      fx = mk_appl_term(mk_term(f), x)
+      gx = mk_appl_term(mk_term(mk_const("g", mk_type(:i, [type_i()]))), x)
+
+      eq = mk_appl_term(mk_appl_term(equals_term(type_i()), fx), gx)
+      result = TPTP.term_to_tptp(eq)
+
+      assert String.contains?(result, "=")
+      assert String.contains?(result, "@")
+    end
+
+    test "converts reflexive equality" do
+      x = make_var("X", type_i())
+      eq = mk_appl_term(mk_appl_term(equals_term(type_i()), x), x)
+      result = TPTP.term_to_tptp(eq)
+
+      assert result == "( X = X )"
+    end
   end
 
   describe "term_to_tptp/1 - derived connectives" do
@@ -220,6 +251,26 @@ defmodule BeHOLd.TPTPTest do
       result = TPTP.term_to_tptp(neq)
 
       assert result == "( A != B )"
+    end
+
+    test "converts inequality with constants" do
+      a = mk_term(mk_const("a", type_i()))
+      b = mk_term(mk_const("b", type_i()))
+      eq = mk_appl_term(mk_appl_term(equals_term(type_i()), a), b)
+      neq = mk_appl_term(neg_term(), eq)
+      result = TPTP.term_to_tptp(neq)
+
+      assert result == "( a != b )"
+    end
+
+    test "converts nested equality" do
+      a = make_var("A", type_i())
+      b = make_var("B", type_i())
+      eq1 = mk_appl_term(mk_appl_term(equals_term(type_i()), a), b)
+      eq2 = mk_appl_term(mk_appl_term(equals_term(type_o()), eq1), eq1)
+      result = TPTP.term_to_tptp(eq2)
+
+      assert String.contains?(result, "=")
     end
   end
 
@@ -353,6 +404,35 @@ defmodule BeHOLd.TPTPTest do
       result = TPTP.term_to_tptp(term)
 
       assert result == "( X = Y )"
+    end
+
+    test "roundtrips equality with typed variables" do
+      ctx =
+        Context.new()
+        |> Context.put_var("X", type_i())
+        |> Context.put_var("Y", type_i())
+
+      term = Parser.parse("X = Y", ctx)
+      result = TPTP.term_to_tptp(term)
+      reparsed = Parser.parse(result, ctx)
+
+      # Should have same structure
+      assert match?(equality(_, _), reparsed)
+    end
+
+    test "roundtrips inequality" do
+      term = Parser.parse("X != Y")
+      result = TPTP.term_to_tptp(term)
+
+      assert String.contains?(result, "!=")
+    end
+
+    test "roundtrips equality in quantified formula" do
+      term = Parser.parse("![X : $i]: X = X")
+      result = TPTP.term_to_tptp(term)
+
+      assert String.contains?(result, "=")
+      assert String.contains?(result, "!")
     end
   end
 

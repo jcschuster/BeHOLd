@@ -1,7 +1,7 @@
 defmodule BeHOLd.MixProject do
   use Mix.Project
 
-  @version "1.1.1"
+  @version "1.1.2"
   @source_url "https://github.com/jcschuster/BeHOLd"
 
   def project do
@@ -66,7 +66,7 @@ defmodule BeHOLd.MixProject do
 
   defp before_closing_head_tag(:html) do
     """
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.28/dist/katex.min.css">
     """
   end
 
@@ -74,8 +74,8 @@ defmodule BeHOLd.MixProject do
 
   defp before_closing_body_tag(:html) do
     """
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.28/dist/katex.min.js" integrity="sha384-+W9OcrYK2/bD7BmUAk+xeFAyKp0QjyRQUCxeU31dfyTt/FrPsUgaBTLLkVf33qWt" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.28/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous"></script>
 
     <script>
       document.addEventListener("DOMContentLoaded", function() {

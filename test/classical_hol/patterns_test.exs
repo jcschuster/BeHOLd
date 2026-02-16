@@ -197,6 +197,46 @@ defmodule BeHOLd.ClassicalHOL.PatternsTest do
 
       refute match?(equality(_, _), equiv)
     end
+
+    test "matches reflexive equality" do
+      a = make_var("A", type_i())
+      eq = mk_appl_term(mk_appl_term(equals_term(type_i()), a), a)
+
+      assert match?(equality(_, _), eq)
+      equality(left, right) = eq
+      assert left == right
+    end
+
+    test "matches equality with complex terms" do
+      # Create function application terms
+      f = mk_const("f", mk_type(:i, [type_i()]))
+      x = make_var("X", type_i())
+      fx = mk_appl_term(mk_term(f), x)
+
+      eq = mk_appl_term(mk_appl_term(equals_term(type_i()), fx), x)
+
+      assert match?(equality(_, _), eq)
+    end
+
+    test "matches equality with lambda terms" do
+      # Create lambda abstraction
+      body = make_var("X", type_i())
+      lambda = mk_abstr_term(body, mk_bound_var(1, type_i()))
+
+      eq = mk_appl_term(mk_appl_term(equals_term(mk_type(:i, [type_i()])), lambda), lambda)
+
+      assert match?(equality(_, _), eq)
+    end
+
+    test "equality pattern distinguishes from inequality" do
+      a = make_var("A", type_i())
+      b = make_var("B", type_i())
+      eq = mk_appl_term(mk_appl_term(equals_term(type_i()), a), b)
+      neq = mk_appl_term(neg_term(), eq)
+
+      assert match?(equality(_, _), eq)
+      refute match?(equality(_, _), neq)
+    end
   end
 
   describe "typed_equality/3 pattern" do
@@ -223,6 +263,49 @@ defmodule BeHOLd.ClassicalHOL.PatternsTest do
 
       # Try to match with type_o - should fail
       refute match?(typed_equality(_, _, type_o()), eq)
+    end
+
+    test "matches equality with user-defined type" do
+      custom_type = mk_type(:mytype)
+      a = make_var("A", custom_type)
+      b = make_var("B", custom_type)
+      eq = mk_appl_term(mk_appl_term(equals_term(custom_type), a), b)
+
+      assert match?(typed_equality(_, _, ^custom_type), eq)
+    end
+
+    test "matches equality with function type" do
+      func_type = mk_type(:i, [type_i()])
+      f = make_var("F", func_type)
+      g = make_var("G", func_type)
+      eq = mk_appl_term(mk_appl_term(equals_term(func_type), f), g)
+
+      assert match?(typed_equality(_, _, ^func_type), eq)
+    end
+
+    test "extracts terms and type correctly" do
+      a = make_var("A", type_i())
+      b = make_var("B", type_i())
+      eq = mk_appl_term(mk_appl_term(equals_term(type_i()), a), b)
+
+      typed_equality(left, right, t) = eq
+      assert left == a
+      assert right == b
+      assert t == type_i()
+    end
+
+    test "matches nested equality correctly" do
+      # (a = b) = (c = d) where a,b,c,d : i
+      a = make_var("A", type_i())
+      b = make_var("B", type_i())
+      c = make_var("C", type_i())
+      d = make_var("D", type_i())
+
+      eq1 = mk_appl_term(mk_appl_term(equals_term(type_i()), a), b)
+      eq2 = mk_appl_term(mk_appl_term(equals_term(type_i()), c), d)
+      outer_eq = mk_appl_term(mk_appl_term(equals_term(type_o()), eq1), eq2)
+
+      assert match?(typed_equality(equality(_, _), equality(_, _), type_o()), outer_eq)
     end
   end
 

@@ -5,8 +5,28 @@ defmodule BeHOLd.ClassicalHOL.Patterns do
   pattern matching and not for term construction!
   """
 
-  import HOL.Data
-  import BeHOLd.ClassicalHOL.Definitions
+  defmacro __using__(opts) do
+    alias_name = Keyword.get(opts, :as)
+
+    loader =
+      if alias_name do
+        quote do
+          alias BeHOLd.ClassicalHOL.Patterns, as: unquote(alias_name)
+        end
+      else
+        quote do
+          import BeHOLd.ClassicalHOL.Patterns
+        end
+      end
+
+    quote do
+      import HOL.Data
+      use BeHOLd.ClassicalHOL.Definitions
+      require BeHOLd.ClassicalHOL.Patterns
+
+      unquote(loader)
+    end
+  end
 
   # The use of macros messes up the type checking, so we ignore the warnings.
   @dialyzer :no_contracts

@@ -176,6 +176,70 @@ defmodule BeHOLd.ParserTest do
       # Inequality is ~(X = Y)
       assert match?(negated(equality(_, _)), term)
     end
+
+    test "parses equality with function application" do
+      ctx =
+        Context.new()
+        |> Context.put_const("f", mk_type(:i, [type_i()]))
+        |> Context.put_var("X", type_i())
+
+      term = Parser.parse("(f @ X) = X", ctx)
+
+      assert match?(equality(_, _), term)
+      equality(left, _right) = term
+      # Left should be application
+      assert match?(hol_term(args: [_]), left)
+    end
+
+    test "parses parenthesized chained equality" do
+      term = Parser.parse("X = (Y = Z)")
+
+      # Should parse as nested equality
+      assert match?(equality(_, equality(_, _)), term)
+    end
+
+    test "parses equality of boolean terms" do
+      term = Parser.parse("(X & Y) = (X | Y)")
+
+      assert match?(equality(conjunction(_, _), disjunction(_, _)), term)
+    end
+
+    test "parses inequality with function application" do
+      ctx =
+        Context.new()
+        |> Context.put_const("f", mk_type(:i, [type_i()]))
+        |> Context.put_var("X", type_i())
+        |> Context.put_var("Y", type_i())
+
+      term = Parser.parse("(f @ X) != Y", ctx)
+
+      assert match?(negated(equality(_, _)), term)
+    end
+
+    test "equality infers type from context" do
+      ctx =
+        Context.new()
+        |> Context.put_const("a", type_i())
+        |> Context.put_const("b", type_i())
+
+      term = Parser.parse("a = b", ctx)
+
+      equality(left, right) = term
+      hol_term(type: left_type) = left
+      hol_term(type: right_type) = right
+      assert left_type == type_i()
+      assert right_type == type_i()
+    end
+
+    test "equality handles mixed variable and constant" do
+      ctx =
+        Context.new()
+        |> Context.put_const("c", type_i())
+
+      term = Parser.parse("c = X", ctx)
+
+      assert match?(equality(_, _), term)
+    end
   end
 
   describe "parse/2 - universal quantification" do

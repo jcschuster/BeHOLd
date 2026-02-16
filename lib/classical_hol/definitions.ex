@@ -17,6 +17,28 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
 
   import HOL.Data
 
+  defmacro __using__(opts) do
+    alias_name = Keyword.get(opts, :as)
+
+    loader =
+      if alias_name do
+        quote do
+          alias BeHOLd.ClassicalHOL.Definitions, as: unquote(alias_name)
+        end
+      else
+        quote do
+          import BeHOLd.ClassicalHOL.Definitions
+        end
+      end
+
+    quote do
+      import HOL.Data
+      require BeHOLd.ClassicalHOL.Definitions
+
+      unquote(loader)
+    end
+  end
+
   # The use of macros in combination with module attributes messes up the type
   # checking, so we ignore the warnings.
   @dialyzer :no_contracts
@@ -220,12 +242,12 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   given element type.
   """
   @spec pi_const(HOL.Data.type()) :: HOL.Data.declaration()
-  defmacro pi_const(type) do
+  defmacro pi_const(element_type) do
     quote do
       declaration(
         kind: :co,
         name: "Π",
-        type: type(goal: :o, args: [type(goal: :o, args: [unquote(type)])])
+        type: type(goal: :o, args: [type(goal: :o, args: [unquote(element_type)])])
       )
     end
   end
@@ -236,12 +258,12 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
   the given element type.
   """
   @spec sigma_const(HOL.Data.type()) :: HOL.Data.declaration()
-  defmacro sigma_const(type) do
+  defmacro sigma_const(element_type) do
     quote do
       declaration(
         kind: :co,
         name: "Σ",
-        type: type(goal: :o, args: [type(goal: :o, args: [unquote(type)])])
+        type: type(goal: :o, args: [type(goal: :o, args: [unquote(element_type)])])
       )
     end
   end
@@ -426,7 +448,6 @@ defmodule BeHOLd.ClassicalHOL.Definitions do
     end
   end
 
-  @doc group: :Terms
   @doc group: :Terms
   @doc """
   A term representation of the pi operator (universal quantification) for the

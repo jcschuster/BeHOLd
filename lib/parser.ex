@@ -37,7 +37,7 @@ defmodule BeHOLd.Parser do
 
   import HOL.Data
   import HOL.Terms
-  import BeHOLd.ClassicalHOL.Definitions
+  use BeHOLd.ClassicalHOL.Definitions
   alias BeHOLd.Data.Context
   alias BeHOLd.Util.Lexer
   alias BeHOLd.Util.TypeInference, as: TI

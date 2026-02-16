@@ -159,6 +159,42 @@ defmodule BeHOLd.ClassicalHOL.DefinitionsTest do
       assert arg2 == type_i()
     end
 
+    test "equals_const creates equality constant for custom type" do
+      custom_type = mk_type(:person)
+      c = equals_const(custom_type)
+
+      declaration(type: t) = c
+      type(goal: goal, args: args) = t
+      assert goal == :o
+      assert length(args) == 2
+      assert Enum.all?(args, &(&1 == custom_type))
+    end
+
+    test "equals_const creates equality constant for function type" do
+      func_type = mk_type(:o, [type_i()])
+      c = equals_const(func_type)
+
+      declaration(type: t, name: name) = c
+      assert name == "="
+      type(goal: goal, args: args) = t
+      assert goal == :o
+      assert length(args) == 2
+      assert Enum.all?(args, &(&1 == func_type))
+    end
+
+    test "equals_const preserves type in declaration" do
+      t1 = type_i()
+      c1 = equals_const(t1)
+
+      t2 = type_o()
+      c2 = equals_const(t2)
+
+      declaration(type: type1) = c1
+      declaration(type: type2) = c2
+
+      refute type1 == type2
+    end
+
     test "pi_const creates universal quantification constant" do
       pred_type = mk_type(:o, [type_i()])
       c = pi_const(pred_type)
@@ -248,6 +284,55 @@ defmodule BeHOLd.ClassicalHOL.DefinitionsTest do
       assert t2 == type_i()
     end
 
+    test "equals_term creates equality term for custom type" do
+      custom_type = mk_type(:entity)
+      t = equals_term(custom_type)
+
+      hol_term(head: head, bvars: bvars) = t
+      assert match?(declaration(name: "="), head)
+      assert length(bvars) == 2
+
+      [bv1, bv2] = bvars
+      declaration(type: t1) = bv1
+      declaration(type: t2) = bv2
+      assert t1 == custom_type
+      assert t2 == custom_type
+    end
+
+    test "equals_term creates equality term for function type" do
+      func_type = mk_type(:i, [type_i()])
+      t = equals_term(func_type)
+
+      hol_term(bvars: bvars, type: result_type) = t
+      assert length(bvars) == 2
+      # Type should be func_type -> func_type -> o
+      expected_type = mk_type(:o, [func_type, func_type])
+      assert result_type == expected_type
+    end
+
+    test "equals_term bound variables have correct indices" do
+      t = equals_term(type_i())
+
+      hol_term(bvars: bvars) = t
+      [bv1, bv2] = bvars
+      declaration(name: n1) = bv1
+      declaration(name: n2) = bv2
+      assert n1 == 2
+      assert n2 == 1
+    end
+
+    test "equals_term has correct argument structure" do
+      t = equals_term(type_o())
+
+      hol_term(args: args) = t
+      assert length(args) == 2
+
+      # Arguments should be bound variables
+      Enum.each(args, fn arg ->
+        assert match?(hol_term(head: declaration(kind: :bv)), arg)
+      end)
+    end
+
     test "pi_term creates universal quantification term" do
       pred_type = mk_type(:o, [type_i()])
       t = pi_term(pred_type)
@@ -305,6 +390,38 @@ defmodule BeHOLd.ClassicalHOL.DefinitionsTest do
       assert match?(hol_term(head: declaration(name: "¬")), t)
       hol_term(bvars: bvars) = t
       assert length(bvars) == 2
+    end
+
+    test "not_equals_term creates inequality for custom type" do
+      custom_type = mk_type(:color)
+      t = not_equals_term(custom_type)
+
+      # Inequality is negated equality
+      assert match?(hol_term(head: declaration(name: "¬")), t)
+      hol_term(args: [inner]) = t
+      assert match?(hol_term(head: declaration(name: "=")), inner)
+    end
+
+    test "not_equals_term bound variables match type" do
+      t = not_equals_term(type_i())
+
+      hol_term(bvars: bvars) = t
+      assert length(bvars) == 2
+      [bv1, bv2] = bvars
+      declaration(type: t1) = bv1
+      declaration(type: t2) = bv2
+      assert t1 == type_i()
+      assert t2 == type_i()
+    end
+
+    test "not_equals_term structure matches negated equals_term" do
+      eq_term = equals_term(type_o())
+      neq_term = not_equals_term(type_o())
+
+      # Both should have same bound variables
+      hol_term(bvars: eq_bvars) = eq_term
+      hol_term(bvars: neq_bvars) = neq_term
+      assert eq_bvars == neq_bvars
     end
   end
 

@@ -18,5 +18,4 @@ defmodule BeHOLd do
   The modules `BeHOLd.Util.Lexer` and `BeHOLd.Util.TypeInference` contain
   utility functions required by the parser.
   """
-  require HOL.Data
 end

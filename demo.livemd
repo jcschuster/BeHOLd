@@ -256,7 +256,7 @@ ctx = Context.new()
   Equality.andrews_equality(Definitions.type_ii())
   |> HOL.Terms.mk_appl_term(a)
   |> HOL.Terms.mk_appl_term(b)
-) == Parser.parse("![Q:($i>$i)>($i>$i)>$o] ((![X:$i>$i]: Q @ X @ X) => Q @ a @ b)")
+) == Parser.parse("![Q:($i>$i)>($i>$i)>$o]: ((![X:$i>$i]: Q @ X @ X) => Q @ a @ b)")
 ```
 
 ```elixir

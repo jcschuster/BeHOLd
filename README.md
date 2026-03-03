@@ -50,7 +50,7 @@ $$
 =_{\alpha\to\alpha\to o} \quad \Pi_{(\alpha\to o)\to o} \quad \Sigma_{(\alpha\to o)\to o}
 $$
 
-Note that $=_{\alpha\to\alpha\to o}$ (short $=^\alpha$),
+Note that ${=}_{\alpha\to\alpha\to o}$ (short ${=}^\alpha$),
 $\Pi_{(\alpha\to o)\to o}$ (short $\Pi^\alpha$) and
 $\Sigma_{(\alpha\to o)\to o}$ (short $\Sigma^\alpha$) represent _families_ of
 constants, i.e., there is one of each symbol for every type.

@@ -1,7 +1,7 @@
 defmodule BeHOLd.MixProject do
   use Mix.Project
 
-  @version "1.1.2"
+  @version "1.1.3"
   @source_url "https://github.com/jcschuster/BeHOLd"
 
   def project do
